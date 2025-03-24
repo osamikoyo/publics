@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 
-	"github.com/osamikoyo/publics/internal/repository/models"
+	models "github.com/osamikoyo/publics/internal/modules/user/entity"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
@@ -20,7 +20,7 @@ type UserStorage struct {
 	logger *logger.Logger
 }
 
-func initUserRepository(db *gorm.DB, logger *logger.Logger) UserRepository {
+func InitUserRepository(db *gorm.DB, logger *logger.Logger) UserRepository {
 	return &UserStorage{
 		db:     db,
 		logger: logger,
