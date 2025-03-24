@@ -11,12 +11,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type EventRepo struct {
+type EventRepository interface {
+	Add(*models.Event) error
+	GetBy(string, string) ([]models.Event, error)
+	Update(id uint, newEvent *models.Event) error
+	Delete(id uint) error
+}
+
+type EventStorage struct {
 	db     *gorm.DB
 	logger *logger.Logger
 }
 
-func initEventRepo(cfg *config.Config, logger *logger.Logger) (*EventRepo, error) {
+func initEventStorage(cfg *config.Config, logger *logger.Logger) (EventRepository, error) {
 	db, err := gorm.Open(sqlite.Open(cfg.DBpath))
 	if err != nil {
 		logger.Error("cant connect to db", zapcore.Field{
@@ -27,17 +34,32 @@ func initEventRepo(cfg *config.Config, logger *logger.Logger) (*EventRepo, error
 		return nil, fmt.Errorf("cant open db: %v", err)
 	}
 
-	return &EventRepo{
+	return &EventStorage{
 		db:     db,
 		logger: logger,
 	}, nil
 }
 
-func (e *EventRepo) Add(event *models.Event) error {
+func (e *EventStorage) Add(event *models.Event) error {
 	return e.db.Create(event).Error
 }
 
-func (e *EventRepo) GetBy(key, value string) ([]models.Event, error) {
+func (e *EventStorage) Update(id uint, newEvent *models.Event) error {
+	res := e.db.Model(&models.Event{}).Where("id = ?", id).Find(newEvent)
+
+	if err := res.Error; err != nil {
+		e.logger.Error("cant do update req", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return fmt.Errorf("cant do update req: %v", err)
+	}
+
+	return nil
+}
+
+func (e *EventStorage) GetBy(key, value string) ([]models.Event, error) {
 	var events []models.Event
 
 	res := e.db.Where(fmt.Sprintf("%s = %s", key, value)).Find(&events)
@@ -53,7 +75,7 @@ func (e *EventRepo) GetBy(key, value string) ([]models.Event, error) {
 	return events, nil
 }
 
-func (e *EventRepo) Delete(id uint) error {
+func (e *EventStorage) Delete(id uint) error {
 	res := e.db.Where("id = ?", id).Delete(&models.Event{})
 	if err := res.Error; err != nil {
 		e.logger.Error("cant do delete request", zapcore.Field{
