@@ -8,14 +8,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type claims struct{
+type Claims struct{
 	jwt.RegisteredClaims
 	ID uint `json:"id"`
 	Username string `json:"username"`
 }
 
+const key = "hello"
+
 func generateToken(userId uint, username string) (string, error){
-	claims := claims{
+	claims := Claims{
 		ID:   userId,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -30,5 +32,5 @@ func generateToken(userId uint, username string) (string, error){
 
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 
-	return token.SigningString()
+	return token.SignedString([]byte(key))
 }

@@ -1,14 +1,15 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/osamikoyo/publics/internal/modules/user/entity"
 	"github.com/osamikoyo/publics/internal/modules/user/repository"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type UserService interface {
@@ -56,14 +57,33 @@ func (u *userService) Login(req *entity.LoginRequest) (string, error) {
 		return "", err
 	}
 
+	req.Password = string(password)
+
 	user, err := u.repo.Login(req)
 	if err != nil || user == nil{
 		return "", fmt.Errorf("cant auth: %v", err)
 	}
 
-	
+	return generateToken(user.ID, user.Username)
 }
 
-func (u *userService) Auth(token string) bool {
+func (u *userService) Auth(tkn string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tkn, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(key), nil
+	})
 
+	if err != nil{
+		u.logger.Error("cant auth user with", zapcore.Field{
+			Key: "token",
+			String: tkn,
+		})
+
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, errors.New("token not valid")
 }
