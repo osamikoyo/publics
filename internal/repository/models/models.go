@@ -17,6 +17,12 @@ type Event struct {
 	PeopleCount    int
 }
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 type User struct {
 	gorm.Model
 	ID        uint `gorm:"primaryKey;autoIncrement"`

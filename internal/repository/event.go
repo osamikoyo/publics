@@ -3,11 +3,9 @@ package repository
 import (
 	"fmt"
 
-	"github.com/osamikoyo/publics/internal/config"
 	"github.com/osamikoyo/publics/internal/repository/models"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"go.uber.org/zap/zapcore"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -23,17 +21,7 @@ type EventStorage struct {
 	logger *logger.Logger
 }
 
-func initEventStorage(cfg *config.Config, logger *logger.Logger) (EventRepository, error) {
-	db, err := gorm.Open(sqlite.Open(cfg.DBpath))
-	if err != nil {
-		logger.Error("cant connect to db", zapcore.Field{
-			Key:    "err",
-			String: err.Error(),
-		})
-
-		return nil, fmt.Errorf("cant open db: %v", err)
-	}
-
+func initEventStorage(db *gorm.DB, logger *logger.Logger) (EventRepository, error) {
 	return &EventStorage{
 		db:     db,
 		logger: logger,
