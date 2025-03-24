@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 
-	"github.com/osamikoyo/publics/internal/repository/models"
+	models "github.com/osamikoyo/publics/internal/modules/event/entity"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
@@ -21,7 +21,7 @@ type EventStorage struct {
 	logger *logger.Logger
 }
 
-func initEventStorage(db *gorm.DB, logger *logger.Logger) (EventRepository, error) {
+func InitEventStorage(db *gorm.DB, logger *logger.Logger) (EventRepository, error) {
 	return &EventStorage{
 		db:     db,
 		logger: logger,
