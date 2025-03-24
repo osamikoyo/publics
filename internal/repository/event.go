@@ -54,5 +54,15 @@ func (e *EventRepo) GetBy(key, value string) ([]models.Event, error) {
 }
 
 func (e *EventRepo) Delete(id uint) error {
-	return e.db.Where("ID = ?", id).Delete(&models.Event{}).Error
+	res := e.db.Where("id = ?", id).Delete(&models.Event{})
+	if err := res.Error; err != nil {
+		e.logger.Error("cant do delete request", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return fmt.Errorf("cant do delete request: %v", err)
+	}
+
+	return nil
 }
