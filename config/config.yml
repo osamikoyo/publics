@@ -1,0 +1,7 @@
+core:
+  server:
+    port: 3322 
+    mode: debug
+
+user.dsn: "storage/main.db"
+user.auth_key: "key"

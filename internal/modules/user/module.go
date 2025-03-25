@@ -12,7 +12,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserModule struct{}
+type Config struct{
+	DSN string
+	Key string
+}
+
+type UserModule struct{
+	cfg *Config 
+}
+
+func (u *UserModule) Inject(cfg *Config) *UserModule {
+	u.cfg = cfg
+	return u
+}
 
 type Routes struct {
 	register *interfaces.RegisterConntroller
