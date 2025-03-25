@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/osamikoyo/publics/internal/modules/user/entity"
+	"github.com/osamikoyo/publics/internal/modules/user/interfaces/config"
 	"github.com/osamikoyo/publics/internal/modules/user/repository"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"go.uber.org/zap/zapcore"
@@ -21,13 +22,13 @@ type UserService interface {
 type UserPrivateService struct {
 	repo   repository.UserRepository
 	logger *logger.Logger
-	key string
+	key config.ServiceConfig
 }
 
-func (u *UserPrivateService) Inject(repo repository.UserRepository, logger *logger.Logger, key string) *UserPrivateService {
+func (u *UserPrivateService) Inject(repo repository.UserRepository, logger *logger.Logger, cfg config.ServiceConfig) *UserPrivateService {
 	u.repo = repo
 	u.logger = logger
-	u.key = key
+	u.key = cfg
 
 	return u
 }
@@ -66,12 +67,12 @@ func (u *UserPrivateService) Login(req *entity.LoginRequest) (string, error) {
 		return "", fmt.Errorf("cant auth: %v", err)
 	}
 
-	return generateToken(user.ID, user.Username, u.key)
+	return generateToken(user.ID, user.Username, u.key.GetKey())
 }
 
 func (u *UserPrivateService) Auth(tkn string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tkn, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return []byte(u.key), nil
+		return []byte(u.key.GetKey()), nil
 	})
 
 	if err != nil {

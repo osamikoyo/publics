@@ -8,6 +8,7 @@ import (
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces"
 	"github.com/osamikoyo/publics/internal/modules/user/repository"
 	"github.com/osamikoyo/publics/internal/modules/user/service"
+	cfg "github.com/osamikoyo/publics/internal/modules/user/interfaces/config"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -21,6 +22,14 @@ type Config struct{
 
 type UserModule struct{
 	cfg *Config 
+}
+
+type serviceConfig struct{
+	Key string
+}
+
+func (s *serviceConfig) GetKey() string {
+	return s.Key
 }
 
 func (u *UserModule) Inject(cfg *Config) *UserModule {
@@ -49,6 +58,12 @@ func (r *Routes) Routes(registry *web.RouterRegistry) {
 }
 
 func (u *UserModule) Configure(inject *dingo.Injector) {
+	inject.Bind(new(cfg.ServiceConfig)).ToProvider(func () cfg.ServiceConfig {
+		return &serviceConfig{
+			Key: u.cfg.Key,
+		}
+	})
+
 	inject.Bind((*gorm.DB)(nil)).ToProvider(func() (*gorm.DB, error) {
 		db, err := gorm.Open(sqlite.Open(u.cfg.DSN))
 		if err != nil {
