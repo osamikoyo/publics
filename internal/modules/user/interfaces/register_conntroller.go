@@ -14,8 +14,9 @@ type RegisterConntroller struct{
 	responder *web.Responder
 }
 
-func (conn *RegisterConntroller) Inject(responder *web.Responder) *RegisterConntroller {
+func (conn *RegisterConntroller) Inject(responder *web.Responder, service service.UserService) *RegisterConntroller {
 	conn.responder = responder
+	conn.service = service 
 	return conn
 }
 
