@@ -21,11 +21,13 @@ type UserService interface {
 type UserPrivateService struct {
 	repo   repository.UserRepository
 	logger *logger.Logger
+	key string
 }
 
-func (u *UserPrivateService) Inject(repo repository.UserRepository, logger *logger.Logger) *UserPrivateService {
+func (u *UserPrivateService) Inject(repo repository.UserRepository, logger *logger.Logger, key string) *UserPrivateService {
 	u.repo = repo
 	u.logger = logger
+	u.key = key
 
 	return u
 }
@@ -64,12 +66,12 @@ func (u *UserPrivateService) Login(req *entity.LoginRequest) (string, error) {
 		return "", fmt.Errorf("cant auth: %v", err)
 	}
 
-	return generateToken(user.ID, user.Username)
+	return generateToken(user.ID, user.Username, u.key)
 }
 
 func (u *UserPrivateService) Auth(tkn string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tkn, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return []byte(key), nil
+		return []byte(u.key), nil
 	})
 
 	if err != nil {

@@ -14,9 +14,7 @@ type Claims struct{
 	Username string `json:"username"`
 }
 
-const key = "hello"
-
-func generateToken(userId uint, username string) (string, error){
+func generateToken(userId uint, username string, key string) (string, error){
 	claims := Claims{
 		ID:   userId,
 		Username: username,

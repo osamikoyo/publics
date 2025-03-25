@@ -2,6 +2,7 @@ package user
 
 import (
 	"flamingo.me/dingo"
+	"flamingo.me/flamingo/v3/framework/config"
 	"flamingo.me/flamingo/v3/framework/web"
 	"github.com/osamikoyo/publics/internal/modules/user/entity"
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces"
@@ -13,8 +14,9 @@ import (
 )
 
 type Config struct{
-	DSN string
-	Key string
+	CompleteConfig config.Map `inject:"config:user"`
+	DSN string `inject:"config:user.dsn"`
+	Key string `inject:"config:user.key"`
 }
 
 type UserModule struct{
@@ -48,7 +50,7 @@ func (r *Routes) Routes(registry *web.RouterRegistry) {
 
 func (u *UserModule) Configure(inject *dingo.Injector) {
 	inject.Bind((*gorm.DB)(nil)).ToProvider(func() (*gorm.DB, error) {
-		db, err := gorm.Open(sqlite.Open("storage/main.db"))
+		db, err := gorm.Open(sqlite.Open(u.cfg.DSN))
 		if err != nil {
 			return nil, err
 		}
