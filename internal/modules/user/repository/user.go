@@ -20,7 +20,7 @@ type UserStorage struct {
 	logger *logger.Logger
 }
 
-func InitUserRepository(db *gorm.DB, logger *logger.Logger) UserRepository {
+func Inject(db *gorm.DB, logger *logger.Logger) *UserStorage {
 	return &UserStorage{
 		db:     db,
 		logger: logger,

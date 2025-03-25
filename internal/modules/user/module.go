@@ -5,6 +5,10 @@ import (
 	"flamingo.me/flamingo/v3/framework/web"
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces"
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces/middleware"
+	"github.com/osamikoyo/publics/internal/modules/user/repository"
+	"github.com/osamikoyo/publics/internal/modules/user/service"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 type UserModule struct{}
@@ -32,5 +36,11 @@ func (r *Routes) Routes(registry *web.RouterRegistry) {
 }
 
 func (u *UserModule) Configure(inject *dingo.Injector) {
+	inject.Bind(new(service.UserService)).To(new(service.UserPrivateService))
+	inject.Bind(new(repository.UserRepository)).To(new(repository.UserStorage))
+	inject.Bind(new(*gorm.DB)).ToProvider(func() (*gorm.DB, error) {
+		return gorm.Open(sqlite.Open("storage/main.db"))
+	})
+
 	web.BindRoutes(inject, new(Routes))
 }

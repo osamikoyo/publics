@@ -18,23 +18,23 @@ type UserService interface {
 	Auth(tkn string) (*Claims, error)
 }
 
-type userService struct {
-	repo repository.UserRepository
+type UserPrivateService struct {
+	repo   repository.UserRepository
 	logger *logger.Logger
 }
 
 func Init(repo repository.UserRepository, logger *logger.Logger) UserService {
-	return &userService{
-		repo: repo,
+	return &UserPrivateService{
+		repo:   repo,
 		logger: logger,
 	}
 }
 
-func (u *userService) Register(user *entity.User) error {
+func (u *UserPrivateService) Register(user *entity.User) error {
 	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil{
+	if err != nil {
 		u.logger.Error("cant register", zapcore.Field{
-			Key: "err",
+			Key:    "err",
 			String: err.Error(),
 		})
 
@@ -46,11 +46,11 @@ func (u *userService) Register(user *entity.User) error {
 	return u.repo.Register(user)
 }
 
-func (u *userService) Login(req *entity.LoginRequest) (string, error) {
+func (u *UserPrivateService) Login(req *entity.LoginRequest) (string, error) {
 	password, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil{
+	if err != nil {
 		u.logger.Error("cant register", zapcore.Field{
-			Key: "err",
+			Key:    "err",
 			String: err.Error(),
 		})
 
@@ -60,21 +60,21 @@ func (u *userService) Login(req *entity.LoginRequest) (string, error) {
 	req.Password = string(password)
 
 	user, err := u.repo.Login(req)
-	if err != nil || user == nil{
+	if err != nil || user == nil {
 		return "", fmt.Errorf("cant auth: %v", err)
 	}
 
 	return generateToken(user.ID, user.Username)
 }
 
-func (u *userService) Auth(tkn string) (*Claims, error) {
+func (u *UserPrivateService) Auth(tkn string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tkn, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte(key), nil
 	})
 
-	if err != nil{
+	if err != nil {
 		u.logger.Error("cant auth user with", zapcore.Field{
-			Key: "token",
+			Key:    "token",
 			String: tkn,
 		})
 
@@ -87,3 +87,4 @@ func (u *userService) Auth(tkn string) (*Claims, error) {
 
 	return nil, errors.New("token not valid")
 }
+

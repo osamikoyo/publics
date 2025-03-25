@@ -3,13 +3,12 @@ package database
 import (
 	"fmt"
 
-	"github.com/osamikoyo/publics/internal/config"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func Init(cfg *config.Config) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(cfg.DBpath))
+func Init() (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open("storage/main.db"))
 	if err != nil {
 		return nil, fmt.Errorf("cant get db: %v", err)
 	}
