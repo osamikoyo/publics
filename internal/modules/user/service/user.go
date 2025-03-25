@@ -23,11 +23,11 @@ type UserPrivateService struct {
 	logger *logger.Logger
 }
 
-func Init(repo repository.UserRepository, logger *logger.Logger) UserService {
-	return &UserPrivateService{
-		repo:   repo,
-		logger: logger,
-	}
+func (u *UserPrivateService) Inject(repo repository.UserRepository, logger *logger.Logger) *UserPrivateService {
+	u.repo = repo
+	u.logger = logger
+
+	return u
 }
 
 func (u *UserPrivateService) Register(user *entity.User) error {

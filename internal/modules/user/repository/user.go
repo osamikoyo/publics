@@ -20,11 +20,10 @@ type UserStorage struct {
 	logger *logger.Logger
 }
 
-func Inject(db *gorm.DB, logger *logger.Logger) *UserStorage {
-	return &UserStorage{
-		db:     db,
-		logger: logger,
-	}
+func (u *UserStorage) Inject(db *gorm.DB, logger *logger.Logger) *UserStorage {
+	u.db = db
+	u.logger = logger
+	return u
 }
 
 func (storage *UserStorage) Register(user *models.User) error {

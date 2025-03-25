@@ -12,10 +12,10 @@ import (
 func main() {
 	flamingo.App(
 		[]dingo.Module{
+			new(user.UserModule),
 			new(gotemplate.Module),
 			new(event.EventModule),
 			new(requestlogger.Module),
-			new(user.UserModule),
 		},
 	)
 }
