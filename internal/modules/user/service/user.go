@@ -15,7 +15,7 @@ import (
 type UserService interface {
 	Register(user *entity.User) error
 	Login(req *entity.LoginRequest) (string, error)
-	Auth(token string) bool
+	Auth(tkn string) (*Claims, error)
 }
 
 type userService struct {
