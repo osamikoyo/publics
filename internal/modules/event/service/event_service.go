@@ -9,7 +9,7 @@ import (
 type EventService interface {
 	Add(*entity.Event) error
 	Update(uint, *entity.Event) error
-	GetFirst(uint) ([]entity.Event, error)
+	GetBy(string, string) ([]entity.Event, error)
 	Delte(uint) error
 }
 
