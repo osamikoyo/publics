@@ -17,7 +17,7 @@ import (
 type Config struct{
 	CompleteConfig config.Map `inject:"config:user"`
 	DSN string `inject:"config:user.dsn"`
-	Key string `inject:"config:user.key"`
+	Key string `inject:"config:user.auth_key"`
 }
 
 type UserModule struct{
