@@ -10,7 +10,7 @@ type EventService interface {
 	Add(*entity.Event) error
 	Update(uint, *entity.Event) error
 	GetBy(string, string) ([]entity.Event, error)
-	Delte(uint) error
+	Delete(uint) error
 }
 
 type EventServiceImpl struct {
@@ -40,4 +40,3 @@ func (e *EventServiceImpl) GetBy(key string, value string) ([]entity.Event, erro
 func (e *EventServiceImpl) Delete(id uint) error {
 	return e.repo.Delete(id)
 }
-
