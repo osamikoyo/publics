@@ -9,7 +9,7 @@ import (
 type EventService interface {
 	Add(*entity.Event) error
 	Update(uint, *entity.Event) error
-	GetFirst(uint) (*entity.Event, error)
+	GetFirst(uint) ([]entity.Event, error)
 	Delte(uint) error
 }
 
@@ -32,3 +32,12 @@ func (e *EventServiceImpl) Add(event *entity.Event) error {
 func (e *EventServiceImpl) Update(id uint, event *entity.Event) error {
 	return e.repo.Update(id, event)
 }
+
+func (e *EventServiceImpl) GetBy(key string, value string) ([]entity.Event, error) {
+	return e.repo.GetBy(key, value)
+}
+
+func (e *EventServiceImpl) Delete(id uint) error {
+	return e.repo.Delete(id)
+}
+
