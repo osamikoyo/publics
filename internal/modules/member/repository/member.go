@@ -10,7 +10,8 @@ import (
 type MemberRepository interface {
 	Add(*entity.PublicMember) error
 	Get(uint) ([]entity.PublicMember, error)
-	Delete(*entity.PublicMember) error
+	Delete(uint) error
+	CheckPermitionDelete(uint, uint) (bool, error)
 }
 
 type MemberStorage struct {
@@ -18,7 +19,7 @@ type MemberStorage struct {
 	logger *logger.Logger
 }
 
-func (repo *MemberStorage) Inject(db *gorm.DB, logger *logger.Logger) *MemberRepository {
+func (repo *MemberStorage) Inject(db *gorm.DB, logger *logger.Logger) MemberRepository {
 	repo.db = db
 	repo.logger = logger
 
@@ -56,6 +57,22 @@ func (repo *MemberStorage) Get(id uint) ([]entity.PublicMember, error) {
 	}
 
 	return members, nil
+}
+
+func (repo *MemberStorage) CheckPermitionDelete(EventID uint, userID uint) (bool, error) {
+	var member entity.PublicMember
+
+	res := repo.db.Where(&entity.PublicMember{
+		EventID: EventID,
+		UserID:  userID,
+		RoleOn:  "admin",
+	}).Find(&member)
+
+	if err := res.Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (repo *MemberStorage) Delete(id uint) error {
