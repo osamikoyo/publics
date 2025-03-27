@@ -10,4 +10,5 @@ type PublicMember struct {
 	UserID    uint
 	CreatedAt time.Time
 	RoleOn    string
+	Username  string
 }

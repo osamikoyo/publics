@@ -55,4 +55,20 @@ func (repo *MemberStorage) Get(id uint) ([]entity.PublicMember, error) {
 		return nil, err
 	}
 
+	return members, nil
+}
+
+func (repo *MemberStorage) Delete(id uint) error {
+	res := repo.db.Delete(&entity.PublicMember{}, id)
+
+	if err := res.Error; err != nil {
+		repo.logger.Error("cant delete member from db", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return nil
+	}
+
+	return nil
 }

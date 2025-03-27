@@ -39,7 +39,8 @@ type Routes struct {
 	delete *interfaces.UpdateConntroller
 }
 
-func (r *Routes) Inject(conn *interfaces.PingConntroller) *Routes {
+func (r *Routes) Inject(conn *interfaces.PingConntroller, add *interfaces.AddConntroller,
+	get *interfaces.GetConnroller, delte *interfaces.DeleteConntroller) *Routes {
 	r.ping = conn
 
 	return r
