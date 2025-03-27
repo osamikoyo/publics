@@ -39,15 +39,18 @@ type Routes struct {
 	get    *interfaces.GetConnroller
 	update *interfaces.UpdateConntroller
 	delete *interfaces.DeleteConntroller
+	auth   middleware.AuthMW
 }
 
 func (r *Routes) Inject(conn *interfaces.PingConntroller, add *interfaces.AddConntroller,
-	get *interfaces.GetConnroller, delte *interfaces.DeleteConntroller, update *interfaces.UpdateConntroller) *Routes {
+	get *interfaces.GetConnroller, delte *interfaces.DeleteConntroller,
+	update *interfaces.UpdateConntroller, auth middleware.AuthMW) *Routes {
 	r.ping = conn
 	r.add = add
 	r.get = get
 	r.update = update
 	r.delete = delte
+	r.auth = auth
 
 	return r
 }
@@ -61,7 +64,7 @@ func (r *Routes) Routes(registry *web.RouterRegistry) {
 
 	registry.HandleDelete("delete", r.delete.Delete)
 	registry.HandleGet("get", r.get.Get)
-	registry.HandlePost("create", r.add.Add, &middleware.AuthMiddleware{})
+	registry.HandlePost("create", r.add.Add)
 	registry.HandleGet("ping", r.ping.Ping)
 }
 
