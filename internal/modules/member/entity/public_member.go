@@ -1,10 +1,13 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type PublicMember struct {
-	ID uint `gorm:"primaryKey;autoIncrement"`
-	EventID uint
-	UserID uint
-	CreatedAt time.Time 
+	ID        uint `gorm:"primaryKey;autoIncrement"`
+	EventID   uint
+	UserID    uint
+	CreatedAt time.Time
+	RoleOn    string
 }
