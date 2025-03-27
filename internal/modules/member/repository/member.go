@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/osamikoyo/publics/internal/modules/member/entity"
 	"github.com/osamikoyo/publics/pkg/logger"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,41 @@ type MemberStorage struct {
 	logger *logger.Logger
 }
 
-func (m *MemberRepository) Inject(db *gorm.DB, logger *logger.Logger) *MemberRepository {
+func (repo *MemberStorage) Inject(db *gorm.DB, logger *logger.Logger) *MemberRepository {
+	repo.db = db
+	repo.logger = logger
+
+	return repo
+}
+
+func (repo *MemberStorage) Add(member *entity.PublicMember) error {
+	res := repo.db.Create(member)
+	if err := res.Error; err != nil {
+		repo.logger.Error("cant add member to db", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return err
+	}
+
+	return nil
+}
+
+func (repo *MemberStorage) Get(id uint) ([]entity.PublicMember, error) {
+	var members []entity.PublicMember
+
+	res := repo.db.Model(&entity.PublicMember{}).Where(&entity.PublicMember{
+		EventID: id,
+	}).Find(&members)
+
+	if err := res.Error; err != nil {
+		repo.logger.Error("cant get members from db", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return nil, err
+	}
 
 }
