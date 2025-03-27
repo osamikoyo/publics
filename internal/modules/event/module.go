@@ -9,6 +9,7 @@ import (
 	"github.com/osamikoyo/publics/internal/modules/event/repository"
 	service "github.com/osamikoyo/publics/internal/modules/event/service"
 	cfg "github.com/osamikoyo/publics/internal/modules/user/interfaces/config"
+	"github.com/osamikoyo/publics/internal/modules/user/interfaces/middleware"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -36,19 +37,31 @@ type Routes struct {
 	ping   *interfaces.PingConntroller
 	add    *interfaces.AddConntroller
 	get    *interfaces.GetConnroller
-	delete *interfaces.UpdateConntroller
+	update *interfaces.UpdateConntroller
+	delete *interfaces.DeleteConntroller
 }
 
 func (r *Routes) Inject(conn *interfaces.PingConntroller, add *interfaces.AddConntroller,
-	get *interfaces.GetConnroller, delte *interfaces.DeleteConntroller) *Routes {
+	get *interfaces.GetConnroller, delte *interfaces.DeleteConntroller, update *interfaces.UpdateConntroller) *Routes {
 	r.ping = conn
+	r.add = add
+	r.get = get
+	r.update = update
+	r.delete = delte
 
 	return r
 }
 
 func (r *Routes) Routes(registry *web.RouterRegistry) {
 	registry.MustRoute("/ping", "ping")
+	registry.MustRoute("/api/event/delete", "delete")
+	registry.MustRoute("/api/event/update", "update")
+	registry.MustRoute("/api/event/create", "create")
+	registry.MustRoute("/api/event/get", "get")
 
+	registry.HandleDelete("delete", r.delete.Delete)
+	registry.HandleGet("get", r.get.Get)
+	registry.HandlePost("create", r.add.Add, &middleware.AuthMiddleware{})
 	registry.HandleGet("ping", r.ping.Ping)
 }
 
@@ -61,11 +74,14 @@ func (s *serviceConfig) GetKey() string {
 }
 
 func (e *EventModule) Configure(inject *dingo.Injector) {
+	inject.Bind(new(web.Filter)).To(new(middleware.AuthMiddleware))
 	inject.Bind(new(cfg.ServiceConfig)).ToProvider(func() cfg.ServiceConfig {
 		return &serviceConfig{
 			Key: e.cfg.Key,
 		}
 	})
+
+	inject.Bind(new(middleware.AuthMW)).To(new(middleware.AuthMiddleware))
 
 	inject.Bind((*gorm.DB)(nil)).ToProvider(func() (*gorm.DB, error) {
 		db, err := gorm.Open(sqlite.Open(e.cfg.DSN))

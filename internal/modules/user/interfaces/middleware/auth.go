@@ -10,7 +10,7 @@ import (
 )
 
 type AuthMW interface {
-	Auth(ctx context.Context, r *web.Request, w *http.ResponseWriter, chain *web.FilterChain) web.Result
+	Filter(web.Action) web.Action
 }
 
 type Claims struct {
@@ -23,56 +23,60 @@ type AuthMiddleware struct {
 	key config.ServiceConfig
 }
 
-func (mw *AuthMiddleware) Inject() *AuthMiddleware {
+func (mw *AuthMiddleware) Inject(key config.ServiceConfig) *AuthMiddleware {
+	mw.key = key
+
 	return mw
 }
 
-func (mw *AuthMiddleware) Auth(ctx context.Context, r *web.Request, w http.ResponseWriter, chain *web.FilterChain) web.Result {
-	tkn := r.Request().Header.Get("Authentification")
-	if tkn == "" {
-		return &web.DataResponse{
-			Data: struct {
-				Message string
-				Status  int
-			}{
-				Message: "token empty",
-				Status:  http.StatusNonAuthoritativeInfo,
-			},
-		}
-	}
-
-	token, err := jwt.ParseWithClaims(tkn, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		return []byte(mw.key.GetKey()), nil
-	})
-
-	if err != nil {
-		return &web.DataResponse{
-			Data: struct {
-				Message string
-				Status  int
-			}{
-				Message: "token empty",
-				Status:  http.StatusUnauthorized,
-			},
+func (mw *AuthMiddleware) Filter(handler web.Action) web.Action {
+	return func(ctx context.Context, req *web.Request) web.Result {
+		tkn := req.Request().Header.Get("Authentification")
+		if tkn == "" {
+			return &web.DataResponse{
+				Data: struct {
+					Message string
+					Status  int
+				}{
+					Message: "token empty",
+					Status:  http.StatusNonAuthoritativeInfo,
+				},
+			}
 		}
 
-	}
+		token, err := jwt.ParseWithClaims(tkn, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+			return []byte(mw.key.GetKey()), nil
+		})
 
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		return &web.DataResponse{
-			Data: struct {
-				Message string
-				Status  int
-			}{
-				Message: "token empty",
-				Status:  http.StatusUnauthorized,
-			},
+		if err != nil {
+			return &web.DataResponse{
+				Data: struct {
+					Message string
+					Status  int
+				}{
+					Message: "token empty",
+					Status:  http.StatusUnauthorized,
+				},
+			}
+
 		}
 
+		claims, ok := token.Claims.(*Claims)
+		if !ok {
+			return &web.DataResponse{
+				Data: struct {
+					Message string
+					Status  int
+				}{
+					Message: "token empty",
+					Status:  http.StatusUnauthorized,
+				},
+			}
+
+		}
+
+		newCtx := context.WithValue(ctx, "claims", claims)
+
+		return handler(newCtx, req)
 	}
-
-	newCtx := context.WithValue(ctx, "claims", claims)
-
-	return chain.Next(newCtx, r, w)
 }
