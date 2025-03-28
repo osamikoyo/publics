@@ -4,15 +4,10 @@ import (
 	"flamingo.me/dingo"
 	"flamingo.me/flamingo/v3/framework/config"
 	"flamingo.me/flamingo/v3/framework/web"
-	"github.com/osamikoyo/publics/internal/modules/event/entity"
 	"github.com/osamikoyo/publics/internal/modules/event/interfaces"
 	"github.com/osamikoyo/publics/internal/modules/event/repository"
 	service "github.com/osamikoyo/publics/internal/modules/event/service"
-	cfg "github.com/osamikoyo/publics/internal/modules/user/interfaces/config"
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces/middleware"
-	"github.com/osamikoyo/publics/pkg/logger"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 type Config struct {
@@ -76,25 +71,7 @@ func (s *serviceConfig) GetKey() string {
 }
 
 func (e *EventModule) Configure(inject *dingo.Injector) {
-	inject.Bind((*logger.Logger)(nil)).ToProvider(func() *logger.Logger {
-		return logger.Init()
-	})
-
-	inject.Bind(new(cfg.ServiceConfig)).ToProvider(func() cfg.ServiceConfig {
-		return &serviceConfig{
-			Key: e.cfg.Key,
-		}
-	})
-
 	inject.Bind(new(middleware.AuthMW)).To(new(middleware.AuthMiddleware))
-
-	inject.Bind((*gorm.DB)(nil)).ToProvider(func() (*gorm.DB, error) {
-		db, err := gorm.Open(sqlite.Open(e.cfg.DSN))
-		if err != nil {
-			return nil, err
-		}
-		return db, nil
-	})
 
 	inject.Bind(new(repository.EventRepository)).To(new(repository.EventStorage))
 	inject.Bind(new(service.EventService)).To(new(service.EventServiceImpl))
