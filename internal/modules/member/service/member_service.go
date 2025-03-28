@@ -19,7 +19,7 @@ type MemberServiceImpl struct {
 	logger *logger.Logger
 }
 
-func (m *MemberServiceImpl) inject(repo repository.MemberRepository, logger *logger.Logger) *MemberServiceImpl {
+func (m *MemberServiceImpl) Inject(repo repository.MemberRepository, logger *logger.Logger) *MemberServiceImpl {
 	m.repo = repo
 	m.logger = logger
 
@@ -55,7 +55,7 @@ func (m *MemberServiceImpl) Get(id uint) ([]entity.PublicMember, error) {
 			})
 	}
 
-	return nil, err
+	return members, err
 }
 
 func (m *MemberServiceImpl) CheckPerms(EventID, UserID uint) (bool, error) {

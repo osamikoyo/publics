@@ -22,13 +22,11 @@ type Config struct {
 }
 
 type EventModule struct {
-	cfg     *Config
-	service service.EventService
+	cfg *Config
 }
 
-func (e *EventModule) Inject(config *Config, service service.EventService) *EventModule {
+func (e *EventModule) Inject(config *Config) *EventModule {
 	e.cfg = config
-	e.service = service
 
 	return e
 }
@@ -78,7 +76,10 @@ func (s *serviceConfig) GetKey() string {
 }
 
 func (e *EventModule) Configure(inject *dingo.Injector) {
-	inject.Bind(new(web.Filter)).To(new(middleware.AuthMiddleware))
+	inject.Bind((*logger.Logger)(nil)).ToProvider(func() *logger.Logger {
+		return logger.Init()
+	})
+
 	inject.Bind(new(cfg.ServiceConfig)).ToProvider(func() cfg.ServiceConfig {
 		return &serviceConfig{
 			Key: e.cfg.Key,
@@ -92,11 +93,7 @@ func (e *EventModule) Configure(inject *dingo.Injector) {
 		if err != nil {
 			return nil, err
 		}
-		inject.Bind((*logger.Logger)(nil)).ToProvider(func() *logger.Logger {
-			return logger.Init()
-		})
-
-		return db, db.AutoMigrate(&entity.Event{})
+		return db, nil
 	})
 
 	inject.Bind(new(repository.EventRepository)).To(new(repository.EventStorage))

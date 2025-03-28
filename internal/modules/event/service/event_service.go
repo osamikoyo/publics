@@ -18,7 +18,7 @@ type EventServiceImpl struct {
 	logger *logger.Logger
 }
 
-func (e *EventServiceImpl) Inject(repo repository.EventRepository, logger *logger.Logger) *EventServiceImpl {
+func (e *EventServiceImpl) Inject(repo repository.EventRepository, logger *logger.Logger) EventService {
 	e.repo = repo
 	e.logger = logger
 

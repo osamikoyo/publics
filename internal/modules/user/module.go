@@ -4,27 +4,28 @@ import (
 	"flamingo.me/dingo"
 	"flamingo.me/flamingo/v3/framework/config"
 	"flamingo.me/flamingo/v3/framework/web"
+	event_entity "github.com/osamikoyo/publics/internal/modules/event/entity"
 	"github.com/osamikoyo/publics/internal/modules/user/entity"
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces"
+	cfg "github.com/osamikoyo/publics/internal/modules/user/interfaces/config"
 	"github.com/osamikoyo/publics/internal/modules/user/repository"
 	"github.com/osamikoyo/publics/internal/modules/user/service"
-	cfg "github.com/osamikoyo/publics/internal/modules/user/interfaces/config"
 	"github.com/osamikoyo/publics/pkg/logger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-type Config struct{
+type Config struct {
 	CompleteConfig config.Map `inject:"config:user"`
-	DSN string `inject:"config:user.dsn"`
-	Key string `inject:"config:user.auth_key"`
+	DSN            string     `inject:"config:user.dsn"`
+	Key            string     `inject:"config:user.auth_key"`
 }
 
-type UserModule struct{
-	cfg *Config 
+type UserModule struct {
+	cfg *Config
 }
 
-type serviceConfig struct{
+type serviceConfig struct {
 	Key string
 }
 
@@ -58,7 +59,7 @@ func (r *Routes) Routes(registry *web.RouterRegistry) {
 }
 
 func (u *UserModule) Configure(inject *dingo.Injector) {
-	inject.Bind(new(cfg.ServiceConfig)).ToProvider(func () cfg.ServiceConfig {
+	inject.Bind(new(cfg.ServiceConfig)).ToProvider(func() cfg.ServiceConfig {
 		return &serviceConfig{
 			Key: u.cfg.Key,
 		}
@@ -69,11 +70,11 @@ func (u *UserModule) Configure(inject *dingo.Injector) {
 		if err != nil {
 			return nil, err
 		}
-	inject.Bind((*logger.Logger)(nil)).ToProvider(func () *logger.Logger {
-		return logger.Init()
-	})
+		inject.Bind((*logger.Logger)(nil)).ToProvider(func() *logger.Logger {
+			return logger.Init()
+		})
 
-		return db, db.AutoMigrate(&entity.User{})
+		return db, db.AutoMigrate(&entity.User{}, &event_entity.Event{})
 	})
 
 	inject.Bind(new(repository.UserRepository)).To(new(repository.UserStorage))
