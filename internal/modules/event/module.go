@@ -57,14 +57,15 @@ func (r *Routes) Inject(conn *interfaces.PingConntroller, add *interfaces.AddCon
 
 func (r *Routes) Routes(registry *web.RouterRegistry) {
 	registry.MustRoute("/ping", "ping")
-	registry.MustRoute("/api/event/delete", "delete")
-	registry.MustRoute("/api/event/update", "update")
+	registry.MustRoute("/api/event/delete/:id", "delete")
+	registry.MustRoute("/api/event/update/:id", "update")
 	registry.MustRoute("/api/event/create", "create")
-	registry.MustRoute("/api/event/get", "get")
+	registry.MustRoute("/api/event/get/:id", "get")
 
 	registry.HandleDelete("delete", r.delete.Delete)
 	registry.HandleGet("get", r.get.Get)
-	registry.HandlePost("create", r.add.Add)
+	registry.HandlePut("update", r.get.Get)
+	registry.HandlePost("create", r.auth.Filter(r.add.Add))
 	registry.HandleGet("ping", r.ping.Ping)
 }
 

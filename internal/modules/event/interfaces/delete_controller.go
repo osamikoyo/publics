@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -23,18 +22,12 @@ func (conn *DeleteConntroller) Inject(responder *web.Responder, service service.
 }
 
 func (conn *DeleteConntroller) Delete(ctx context.Context, req *web.Request) web.Result {
-	id := req.QueryAll().Get("id")
-
-	if id == "" {
-		return conn.responder.BadRequestWithContext(ctx, errors.New("request without id"))
-	}
-
-	idInt, err := strconv.Atoi(id)
+	id, err := strconv.Atoi(req.Params["id"])
 	if err != nil {
 		return conn.responder.BadRequestWithContext(ctx, err)
 	}
 
-	if err := conn.service.Delete(uint(idInt)); err != nil {
+	if err := conn.service.Delete(uint(id)); err != nil {
 		return conn.responder.ServerErrorWithContext(ctx, err)
 	}
 
