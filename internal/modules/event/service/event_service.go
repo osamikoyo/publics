@@ -1,6 +1,8 @@
 package servic
 
 import (
+	"time"
+
 	"github.com/osamikoyo/publics/internal/modules/event/entity"
 	"github.com/osamikoyo/publics/internal/modules/event/repository"
 	"github.com/osamikoyo/publics/pkg/logger"
@@ -25,7 +27,11 @@ func (e *EventServiceImpl) Inject(repo repository.EventRepository, logger *logge
 	return e
 }
 
+const TIME_FORMAT = "02.01.2006"
+
 func (e *EventServiceImpl) Add(event *entity.Event) error {
+	event.DateEnd = time.Now().Format(TIME_FORMAT)
+
 	return e.repo.Add(event)
 }
 
