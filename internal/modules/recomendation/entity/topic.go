@@ -1,7 +1,7 @@
 package entity
 
 type Topic struct {
-	ID          uint   `json:"id"`
-	TextExplain string `json:"text_explain"`
-	Desc        string `json:"desc"`
+	ID          uint   `bson:"id"`
+	TextExplain string `bson:"text_explain"`
+	Desc        string `bson:"desc"`
 }

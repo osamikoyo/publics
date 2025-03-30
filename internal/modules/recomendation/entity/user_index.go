@@ -5,6 +5,7 @@ import (
 )
 
 type UserIndex struct {
-	User   entity.User
-	Topics []Topic `gorm:"type:json"`
+	UserID uint
+	User   entity.User `gorm:"foreighKey:UserID"`
+	Topics []Topic     `gorm:"type:json"`
 }
