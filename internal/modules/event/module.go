@@ -8,6 +8,7 @@ import (
 	"github.com/osamikoyo/publics/internal/modules/event/repository"
 	service "github.com/osamikoyo/publics/internal/modules/event/service"
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces/middleware"
+  perms_mw 	"github.com/osamikoyo/publics/internal/modules/member/interfaces/middleware"
 )
 
 type Config struct {
@@ -33,17 +34,20 @@ type Routes struct {
 	update *interfaces.UpdateConntroller
 	delete *interfaces.DeleteConntroller
 	auth   middleware.AuthMW
+  checkPerms perms_mw.CheckPermsMiddleware
 }
 
 func (r *Routes) Inject(conn *interfaces.PingConntroller, add *interfaces.AddConntroller,
 	get *interfaces.GetConnroller, delte *interfaces.DeleteConntroller,
-	update *interfaces.UpdateConntroller, auth middleware.AuthMW) *Routes {
+	update *interfaces.UpdateConntroller, auth middleware.AuthMW
+  checkPerms perms_mw.CheckPermsMiddleware) *Routes {
 	r.ping = conn
 	r.add = add
 	r.get = get
 	r.update = update
 	r.delete = delte
 	r.auth = auth
+  r.checkPerms = checkPerms
 
 	return r
 }
@@ -55,9 +59,9 @@ func (r *Routes) Routes(registry *web.RouterRegistry) {
 	registry.MustRoute("/api/event/create", "create")
 	registry.MustRoute("/api/event/get/:id", "get")
 
-	registry.HandleDelete("delete", r.delete.Delete)
+	registry.HandleDelete("delete", r.checkPerms.CheckPerms(r.auth.Filter(r.delete.Delete)))
 	registry.HandleGet("get", r.get.Get)
-	registry.HandlePut("update", r.get.Get)
+	registry.HandlePut("update", r.checkPerms.CheckPerms(r.auth.Filter(r.update.Update)))
 	registry.HandlePost("create", r.auth.Filter(r.add.Add))
 	registry.HandleGet("ping", r.ping.Ping)
 }
@@ -71,6 +75,7 @@ func (s *serviceConfig) GetKey() string {
 }
 
 func (e *EventModule) Configure(inject *dingo.Injector) {
+  inject.Bind(new(perms_mw.CheckPermsMiddleware)).To(new(perms_mw.CheckPermsMW))
 	inject.Bind(new(middleware.AuthMW)).To(new(middleware.AuthMiddleware))
 
 	inject.Bind(new(repository.EventRepository)).To(new(repository.EventStorage))
