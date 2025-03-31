@@ -12,6 +12,7 @@ import (
 type EventRepository interface {
 	Add(*models.Event) error
 	GetBy(string, string) ([]models.Event, error)
+	GetSome(int) ([]models.Event, error)
 	Update(id uint, newEvent *models.Event) error
 	Delete(id uint) error
 }
@@ -58,6 +59,22 @@ func (e *EventStorage) GetBy(key, value string) ([]models.Event, error) {
 		})
 
 		return nil, fmt.Errorf("cant do getby req: %v", res.Error)
+	}
+
+	return events, nil
+}
+
+func (e *EventStorage) GetSome(number int) ([]models.Event, error) {
+	var events []models.Event
+
+	result := e.db.Limit(number).Find(&events)
+	if err := result.Error; err != nil {
+		e.logger.Error("cant do getsome request to db", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return nil, fmt.Errorf("cant do getsome request: %v", err)
 	}
 
 	return events, nil
