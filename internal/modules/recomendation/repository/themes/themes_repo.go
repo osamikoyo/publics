@@ -1,10 +1,12 @@
 package themes
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/dgraph-io/dgo/v210"
+	"github.com/dgraph-io/dgo/v210/protos/api"
 	"github.com/osamikoyo/publics/internal/modules/recomendation/entity"
 	"github.com/osamikoyo/publics/pkg/logger"
 )
@@ -21,10 +23,10 @@ func (repo *TopicRepository) Inject(client *dgo.Dgraph, logger *logger.Logger) *
 	return repo
 }
 
-func (repo *ThemesRepository) CreateTopic(tc *entity.Topic, alikeID []uint) error {
-	topic := 
+func (repo *TopicRepository) CreateTopic(tc *entity.Topic, alikeID []uint) error {
+	topic := tc.ToGraph()
 
-  topic.DgraphType = "Topic"
+	topic.DgraphType = "Topic"
 	topicJSON, err := json.Marshal(topic)
 	if err != nil {
 		return err
@@ -36,26 +38,22 @@ func (repo *ThemesRepository) CreateTopic(tc *entity.Topic, alikeID []uint) erro
 	}
 
 	ctx := context.Background()
-	resp, err := dgraphClient.NewTxn().Mutate(ctx, mu)
+	resp, err := repo.client.NewTxn().Mutate(ctx, mu)
 	if err != nil {
 		return err
 	}
+	newTopicUID := resp.Uids["blank-0"]
 
-	// Получаем UID новой темы
-	newTopicUID := resp.Uids["blank-0"] // или другой ключ, если задан
-
-	// 2. Если есть alikeIDs, добавляем связи
-	if len(alikeIDs) > 0 {
-		// Формируем запрос для поиска UID тем по их ID
+	if len(alikeID) > 0 {
 		query := fmt.Sprintf(`
 			{
 				findTopics(func: eq(id, %d)) @filter(type(Topic)) {
 					uid
 				}
 			}
-		`, alikeID[0]) // Пример для одного ID (можно расширить)
+		`, alikeID[0])
 
-		res, err := dgraphClient.NewTxn().Query(ctx, query)
+		res, err := repo.client.NewTxn().Query(ctx, query)
 		if err != nil {
 			return err
 		}
@@ -77,7 +75,7 @@ func (repo *ThemesRepository) CreateTopic(tc *entity.Topic, alikeID []uint) erro
 				<%s> <alike> <%s> .
 			`, newTopicUID, alikeTopicUID)
 
-			_, err = dgraphClient.NewTxn().Mutate(ctx, &api.Mutation{
+			_, err = repo.client.NewTxn().Mutate(ctx, &api.Mutation{
 				SetNquads: []byte(edgeMutation),
 				CommitNow: true,
 			})

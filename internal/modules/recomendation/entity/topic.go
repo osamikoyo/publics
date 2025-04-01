@@ -18,12 +18,15 @@ func (g *GraphTopic) ToBase() *Topic {
 	return &Topic{
 		ID:          g.ID,
 		TextExplain: g.TextExplain,
-    Desc: g.Desc,
+		Desc:        g.Desc,
 	}
 }
 
-func (g *GraphTopic) ToGraph() *GraphTopic {
-  return &GraphTopic{
-    UID: ,
-  }
+func (g *Topic) ToGraph() *GraphTopic {
+	return &GraphTopic{
+		ID:          g.ID,
+		TextExplain: g.TextExplain,
+		Desc:        g.Desc,
+		DgraphType:  "topic",
+	}
 }
