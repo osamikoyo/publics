@@ -48,3 +48,26 @@ func (repo *RecomendationRepository) GetUserFavouriteTopics(id uint) ([]entity.T
 
 	return user.Topics, nil
 }
+
+func (repo *RecomendationRepository) AddFavoutiteTopic(id uint, topic *entity.Topic) error {
+	filter := bson.M{
+		"user_id": id,
+	}
+
+	update := bson.M{
+		"$push": bson.M{
+			"topics": topic,
+		},
+	}
+
+	if err := repo.coll.FindOneAndUpdate(repo.ctx, filter, update).Err(); err != nil {
+		repo.logger.Error("error add favourite topic", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return err
+	}
+
+	return nil
+}

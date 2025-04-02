@@ -84,4 +84,6 @@ func (repo *TopicRepository) CreateTopic(tc *entity.Topic, alikeID []uint) error
 			}
 		}
 	}
+
+	return nil
 }
