@@ -71,3 +71,27 @@ func (repo *RecomendationRepository) AddFavoutiteTopic(id uint, topic *entity.To
 
 	return nil
 }
+
+func (repo *RecomendationRepository) DeleteFavouriteTopic(id uint, topicID uint) error {
+	filter := bson.M{
+		"user_id": id,
+	}
+
+	update := bson.M{
+		"$pull": bson.M{
+			"id": topicID,
+		},
+	}
+
+	res := repo.coll.FindOneAndUpdate(repo.ctx, filter, update)
+	if err := res.Err(); err != nil {
+		repo.logger.Error("error delete favourite topic", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return err
+	}
+
+	return nil
+}
