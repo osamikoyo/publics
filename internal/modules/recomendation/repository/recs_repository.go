@@ -11,13 +11,19 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type RecomendationRepository struct {
+type RecomendationRepository interface {
+	GetUserFavouriteTopics(uint) ([]entity.Topic, error)
+	AddFavoutiteTopic(uint, *entity.Topic) error
+	DeleteFavouriteTopic(uint, uint) error
+}
+
+type RecomendationStorage struct {
 	coll   *mongo.Collection
 	logger *logger.Logger
 	ctx    context.Context
 }
 
-func (repo *RecomendationRepository) Inject(coll *mongo.Collection, logger *logger.Logger) *RecomendationRepository {
+func (repo *RecomendationStorage) Inject(coll *mongo.Collection, logger *logger.Logger) RecomendationRepository {
 	repo.coll = coll
 	repo.logger = logger
 
@@ -29,7 +35,7 @@ func (repo *RecomendationRepository) Inject(coll *mongo.Collection, logger *logg
 	return repo
 }
 
-func (repo *RecomendationRepository) GetUserFavouriteTopics(id uint) ([]entity.Topic, error) {
+func (repo *RecomendationStorage) GetUserFavouriteTopics(id uint) ([]entity.Topic, error) {
 	var user entity.UserIndex
 
 	filter := bson.M{
@@ -49,7 +55,7 @@ func (repo *RecomendationRepository) GetUserFavouriteTopics(id uint) ([]entity.T
 	return user.Topics, nil
 }
 
-func (repo *RecomendationRepository) AddFavoutiteTopic(id uint, topic *entity.Topic) error {
+func (repo *RecomendationStorage) AddFavoutiteTopic(id uint, topic *entity.Topic) error {
 	filter := bson.M{
 		"user_id": id,
 	}
@@ -72,7 +78,7 @@ func (repo *RecomendationRepository) AddFavoutiteTopic(id uint, topic *entity.To
 	return nil
 }
 
-func (repo *RecomendationRepository) DeleteFavouriteTopic(id uint, topicID uint) error {
+func (repo *RecomendationStorage) DeleteFavouriteTopic(id uint, topicID uint) error {
 	filter := bson.M{
 		"user_id": id,
 	}
