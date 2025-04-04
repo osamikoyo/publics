@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	flamingo.me/dingo v0.3.0
 	flamingo.me/flamingo/v3 v3.13.0
+	github.com/dgraph-io/dgo/v210 v210.0.0-20230328113526-b66f8ae53a2d
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/zap v1.27.0
@@ -21,7 +22,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
-	github.com/dgraph-io/dgo/v210 v210.0.0-20230328113526-b66f8ae53a2d // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
