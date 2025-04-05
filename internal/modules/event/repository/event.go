@@ -11,6 +11,7 @@ import (
 
 type EventRepository interface {
 	Add(*models.Event) error
+	GetWithTopic(string) ([]models.Event, error)
 	GetBy(string, string) ([]models.Event, error)
 	GetSome(int) ([]models.Event, error)
 	Update(id uint, newEvent *models.Event) error
@@ -46,6 +47,25 @@ func (e *EventStorage) Update(id uint, newEvent *models.Event) error {
 	}
 
 	return nil
+}
+
+func (e *EventStorage) GetWithTopic(topic string) ([]models.Event, error) {
+	var events []models.Event
+
+	res := e.db.Where(&models.Event{
+		Topic: topic,
+	}).Find(&events)
+
+	if err := res.Error; err != nil {
+		e.logger.Error("error get events by topic", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+
+		return nil, err
+	}
+
+	return events, nil
 }
 
 func (e *EventStorage) GetBy(key, value string) ([]models.Event, error) {

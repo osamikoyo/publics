@@ -17,4 +17,5 @@ type Event struct {
 	MemberCount    uint
 	Title          string
 	Desc           string
+	Topic          string
 }
