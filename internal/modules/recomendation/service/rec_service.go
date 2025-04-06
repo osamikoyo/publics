@@ -18,6 +18,7 @@ type RecomendationServiceImpl struct {
 	topicRepo               topicrepo.TopicRepository
 	recsRepo                repository.RecomendationRepository
 	eventRepo               eventrepo.EventRepository
+	arrayOfUID              []selfentity.UID
 	topicSelfStorage        map[selfentity.UID]*selfentity.Element
 	topicConnectingsStorage map[selfentity.UID]float32
 }
@@ -34,8 +35,15 @@ func (r *RecomendationServiceImpl) Inject(topicRepo topicrepo.TopicRepository, r
 	return r
 }
 
-func (r *RecomendationServiceImpl) getProcentOf(full int, element *selfentity.Element) {
+func (r *RecomendationServiceImpl) incrementProcentOf(full int, element *selfentity.Element) {
+	r.arrayOfUID = append(r.arrayOfUID, element.ID)
+	r.topicSelfStorage[element.ID] = element
 
+	if r.topicConnectingsStorage[element.ID] != 0 {
+		r.topicConnectingsStorage[element.ID] = float32(((r.topicConnectingsStorage[element.ID] + 1) * 100) / float32(full))
+	} else {
+		r.topicConnectingsStorage[element.ID] = float32((1 * 100) / full)
+	}
 }
 
 func (r *RecomendationServiceImpl) GetRecs() ([]entity.Event, error) {
