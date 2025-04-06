@@ -14,6 +14,8 @@ type RecomendationService interface {
 	DeleteFavTopic(uint, uint) error
 }
 
+const LAST_PARENTS = 3
+
 type RecomendationServiceImpl struct {
 	topicRepo               topicrepo.TopicRepository
 	recsRepo                repository.RecomendationRepository
@@ -29,7 +31,6 @@ func (r *RecomendationServiceImpl) Inject(topicRepo topicrepo.TopicRepository, r
 	r.topicRepo = topicRepo
 	r.eventRepo = eventRepo
 
-	r.topicConnectingsStorage = make(map[selfentity.UID]float32)
 	r.topicSelfStorage = make(map[selfentity.UID]*selfentity.Element)
 
 	return r
@@ -44,6 +45,20 @@ func (r *RecomendationServiceImpl) incrementProcentOf(full int, element *selfent
 	} else {
 		r.topicConnectingsStorage[element.ID] = float32((1 * 100) / full)
 	}
+}
+
+func (r *RecomendationServiceImpl) getProcentOf(topic string) float32 {
+	for _, el := range r.arrayOfUID {
+		if r.topicSelfStorage[el].Self.Topic == topic {
+			return r.topicConnectingsStorage[el]
+		}
+	}
+
+	return 0
+}
+
+func (r *RecomendationServiceImpl) AddFavTopic(userID, topicID uint) error {
+
 }
 
 func (r *RecomendationServiceImpl) GetRecs() ([]entity.Event, error) {

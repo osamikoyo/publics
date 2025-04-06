@@ -9,21 +9,100 @@ import (
 	"github.com/dgraph-io/dgo/v210/protos/api"
 	"github.com/osamikoyo/publics/internal/modules/recomendation/entity"
 	"github.com/osamikoyo/publics/pkg/logger"
+	"go.uber.org/zap/zapcore"
 )
 
-type TopicRepository struct {
+type TopicRepository interface {
+	CreateTopic(*entity.Topic, []uint)
+	GetAlikeTopics(uint) []entity.Topic
+}
+
+type TopicStorage struct {
 	client *dgo.Dgraph
 	logger *logger.Logger
 }
 
-func (repo *TopicRepository) Inject(client *dgo.Dgraph, logger *logger.Logger) *TopicRepository {
+func (repo *TopicStorage) Inject(client *dgo.Dgraph, logger *logger.Logger) *TopicStorage {
 	repo.client = client
 	repo.logger = logger
 
 	return repo
 }
 
-func (repo *TopicRepository) CreateTopic(tc *entity.Topic, alikeID []uint) error {
+func (repo *TopicStorage) GetAlikeTopics(topicID uint) []entity.GraphTopic {
+	ctx := context.Background()
+
+	query := fmt.Sprintf(`
+		query GetAlikeTopics($topicID: uint) {
+			topic(func: uid($topicID)) {
+				uid
+				id
+				text_explain
+				desc
+				dgraph.type
+				
+				~related_to {  
+					uid
+					id
+					text_explain
+					desc
+					dgraph.type
+				}
+				
+				related_to { 
+					uid
+					id
+					text_explain
+					desc
+					dgraph.type
+				}
+			}
+		}
+	`)
+
+	variables := map[string]string{
+		"$topicID": fmt.Sprintf("%d", topicID),
+	}
+
+	resp, err := repo.client.NewTxn().QueryWithVars(ctx, query, variables)
+	if err != nil {
+		repo.logger.Error("Failed to execute Dgraph query: %v", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+		return nil
+	}
+
+	var result struct {
+		Topic []struct {
+			UID          string              `json:"uid"`
+			ID           uint                `json:"id"`
+			TextExplain  string              `json:"text_explain"`
+			Desc         string              `json:"desc"`
+			DgraphType   string              `json:"dgraph.type"`
+			RelatedTo    []entity.GraphTopic `json:"related_to"`
+			RevRelatedTo []entity.GraphTopic `json:"~related_to"`
+		} `json:"topic"`
+	}
+
+	if err := json.Unmarshal(resp.Json, &result); err != nil {
+		repo.logger.Error("Failed to unmarshal Dgraph response", zapcore.Field{
+			Key:    "err",
+			String: err.Error(),
+		})
+		return nil
+	}
+
+	var alikeTopics []entity.GraphTopic
+	if len(result.Topic) > 0 {
+		alikeTopics = append(alikeTopics, result.Topic[0].RelatedTo...)
+		alikeTopics = append(alikeTopics, result.Topic[0].RevRelatedTo...)
+	}
+
+	return alikeTopics
+}
+
+func (repo *TopicStorage) CreateTopic(tc *entity.Topic, alikeID []uint) error {
 	topic := tc.ToGraph()
 
 	topic.DgraphType = "Topic"
