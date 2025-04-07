@@ -58,7 +58,7 @@ func (r *RecomendationServiceImpl) getProcentOf(topic string) float32 {
 }
 
 func (r *RecomendationServiceImpl) AddFavTopic(userID, topicID uint) error {
-
+	topic, err := r.recsRepo.AddFavoutiteTopic()
 }
 
 func (r *RecomendationServiceImpl) GetRecs() ([]entity.Event, error) {

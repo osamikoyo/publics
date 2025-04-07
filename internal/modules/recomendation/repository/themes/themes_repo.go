@@ -29,6 +29,61 @@ func (repo *TopicStorage) Inject(client *dgo.Dgraph, logger *logger.Logger) *Top
 	return repo
 }
 
+func (repo *TopicStorage) GetTopicByID(id uint) (*entity.GraphTopic, error) {
+	query := `
+        query GetTopic($id: uint) {
+            topic(func: eq(id, $id)) {
+                uid
+                id
+                text_explain
+                desc
+                dgraph.type
+            }
+        }
+    `
+
+	vars := map[string]string{"$id": fmt.Sprintf("%d", id)}
+	req := &api.Request{
+		Query:    query,
+		Vars:     vars,
+		ReadOnly: true,
+	}
+
+	ctx := context.Background()
+	resp, err := repo.client.NewTxn().Do(ctx, req)
+	if err != nil {
+		repo.logger.Log(zapcore.ErrorLevel, "failed to execute query",
+			zap.String("method", "GetTopicByID"),
+			zap.Uint("id", id),
+			zap.Error(err),
+		)
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+
+	var result struct {
+		Topics []entity.GraphTopic `json:"topic"`
+	}
+
+	if err := json.Unmarshal(resp.Json, &result); err != nil {
+		repo.logger.Log(zapcore.ErrorLevel, "failed to unmarshal response",
+			zap.String("method", "GetTopicByID"),
+			zap.Uint("id", id),
+			zap.Error(err),
+		)
+		return nil, fmt.Errorf("unmarshal failed: %w", err)
+	}
+
+	if len(result.Topics) == 0 {
+		repo.logger.Log(zapcore.InfoLevel, "topic not found",
+			zap.String("method", "GetTopicByID"),
+			zap.Uint("id", id),
+		)
+		return nil, nil
+	}
+
+	return &result.Topics[0], nil
+}
+
 func (repo *TopicStorage) GetAlikeTopics(topicID uint) []entity.GraphTopic {
 	ctx := context.Background()
 
