@@ -32,6 +32,7 @@ func (r *RecomendationServiceImpl) Inject(topicRepo topicrepo.TopicRepository, r
 	r.eventRepo = eventRepo
 
 	r.topicSelfStorage = make(map[selfentity.UID]*selfentity.Element)
+	r.topicConnectingsStorage = make(map[selfentity.UID]float32)
 
 	return r
 }
@@ -58,7 +59,7 @@ func (r *RecomendationServiceImpl) getProcentOf(topic string) float32 {
 }
 
 func (r *RecomendationServiceImpl) AddFavTopic(userID, topicID uint) error {
-	topic, err := r.recsRepo.AddFavoutiteTopic()
+
 }
 
 func (r *RecomendationServiceImpl) GetRecs() ([]entity.Event, error) {

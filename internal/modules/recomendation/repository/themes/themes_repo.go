@@ -53,10 +53,10 @@ func (repo *TopicStorage) GetTopicByID(id uint) (*entity.GraphTopic, error) {
 	resp, err := repo.client.NewTxn().Do(ctx, req)
 	if err != nil {
 		repo.logger.Log(zapcore.ErrorLevel, "failed to execute query",
-			zap.String("method", "GetTopicByID"),
-			zap.Uint("id", id),
-			zap.Error(err),
-		)
+			zapcore.Field{
+				Key:    "err",
+				String: err.Error(),
+			})
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
@@ -66,18 +66,19 @@ func (repo *TopicStorage) GetTopicByID(id uint) (*entity.GraphTopic, error) {
 
 	if err := json.Unmarshal(resp.Json, &result); err != nil {
 		repo.logger.Log(zapcore.ErrorLevel, "failed to unmarshal response",
-			zap.String("method", "GetTopicByID"),
-			zap.Uint("id", id),
-			zap.Error(err),
-		)
+			zapcore.Field{
+				Key:    "err",
+				String: err.Error(),
+			})
 		return nil, fmt.Errorf("unmarshal failed: %w", err)
 	}
 
 	if len(result.Topics) == 0 {
 		repo.logger.Log(zapcore.InfoLevel, "topic not found",
-			zap.String("method", "GetTopicByID"),
-			zap.Uint("id", id),
-		)
+			zapcore.Field{
+				Key:    "err",
+				String: err.Error(),
+			})
 		return nil, nil
 	}
 
