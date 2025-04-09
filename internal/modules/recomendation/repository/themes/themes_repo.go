@@ -74,11 +74,8 @@ func (repo *TopicStorage) GetTopicByID(id uint) (*entity.GraphTopic, error) {
 	}
 
 	if len(result.Topics) == 0 {
-		repo.logger.Log(zapcore.InfoLevel, "topic not found",
-			zapcore.Field{
-				Key:    "err",
-				String: err.Error(),
-			})
+		repo.logger.Log(zapcore.InfoLevel, "topic not found")
+
 		return nil, nil
 	}
 

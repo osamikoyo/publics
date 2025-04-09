@@ -7,8 +7,8 @@ import (
 	"github.com/osamikoyo/publics/internal/modules/event/interfaces"
 	"github.com/osamikoyo/publics/internal/modules/event/repository"
 	service "github.com/osamikoyo/publics/internal/modules/event/service"
+	perms_mw "github.com/osamikoyo/publics/internal/modules/member/interfaces/middleware"
 	"github.com/osamikoyo/publics/internal/modules/user/interfaces/middleware"
-  perms_mw 	"github.com/osamikoyo/publics/internal/modules/member/interfaces/middleware"
 )
 
 type Config struct {
@@ -28,26 +28,26 @@ func (e *EventModule) Inject(config *Config) *EventModule {
 }
 
 type Routes struct {
-	ping   *interfaces.PingConntroller
-	add    *interfaces.AddConntroller
-	get    *interfaces.GetConnroller
-	update *interfaces.UpdateConntroller
-	delete *interfaces.DeleteConntroller
-	auth   middleware.AuthMW
-  checkPerms perms_mw.CheckPermsMiddleware
+	ping       *interfaces.PingConntroller
+	add        *interfaces.AddConntroller
+	get        *interfaces.GetConnroller
+	update     *interfaces.UpdateConntroller
+	delete     *interfaces.DeleteConntroller
+	auth       middleware.AuthMW
+	checkPerms perms_mw.CheckPermsMiddleware
 }
 
 func (r *Routes) Inject(conn *interfaces.PingConntroller, add *interfaces.AddConntroller,
 	get *interfaces.GetConnroller, delte *interfaces.DeleteConntroller,
-	update *interfaces.UpdateConntroller, auth middleware.AuthMW
-  checkPerms perms_mw.CheckPermsMiddleware) *Routes {
+	update *interfaces.UpdateConntroller, auth middleware.AuthMW,
+	checkPerms perms_mw.CheckPermsMiddleware) *Routes {
 	r.ping = conn
 	r.add = add
 	r.get = get
 	r.update = update
 	r.delete = delte
 	r.auth = auth
-  r.checkPerms = checkPerms
+	r.checkPerms = checkPerms
 
 	return r
 }
@@ -75,7 +75,7 @@ func (s *serviceConfig) GetKey() string {
 }
 
 func (e *EventModule) Configure(inject *dingo.Injector) {
-  inject.Bind(new(perms_mw.CheckPermsMiddleware)).To(new(perms_mw.CheckPermsMW))
+	inject.Bind(new(perms_mw.CheckPermsMiddleware)).To(new(perms_mw.CheckPermsMW))
 	inject.Bind(new(middleware.AuthMW)).To(new(middleware.AuthMiddleware))
 
 	inject.Bind(new(repository.EventRepository)).To(new(repository.EventStorage))

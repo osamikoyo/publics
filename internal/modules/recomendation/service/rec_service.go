@@ -14,7 +14,11 @@ type RecomendationService interface {
 	DeleteFavTopic(uint, uint) error
 }
 
-const LAST_PARENTS = 3
+const (
+	LAST_PARENTS                    = 3
+	FULL_USERS                      = 400
+	NUMBER_ELEMENT_TO_ALLIKE_SLICES = 4
+)
 
 type RecomendationServiceImpl struct {
 	topicRepo               topicrepo.TopicRepository
@@ -48,9 +52,26 @@ func (r *RecomendationServiceImpl) incrementProcentOf(full int, element *selfent
 	}
 }
 
-func (r *RecomendationServiceImpl) getProcentOf(topic string) float32 {
+func allikeSlises(arr1, arr2 []selfentity.Topic) bool {
+	counter := 0
+	for _, a := range arr1 {
+		for _, b := range arr2 {
+			if a.ID == b.ID {
+				counter++
+			}
+		}
+	}
+
+	if counter >= NUMBER_ELEMENT_TO_ALLIKE_SLICES {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (r *RecomendationServiceImpl) getProcentOf(topic *selfentity.Element) float32 {
 	for _, el := range r.arrayOfUID {
-		if r.topicSelfStorage[el].Self.Topic == topic {
+		if r.topicSelfStorage[el].Self == topic.Self && r.topicSelfStorage[el].Parents == topic.Parents {
 			return r.topicConnectingsStorage[el]
 		}
 	}
@@ -59,7 +80,18 @@ func (r *RecomendationServiceImpl) getProcentOf(topic string) float32 {
 }
 
 func (r *RecomendationServiceImpl) AddFavTopic(userID, topicID uint) error {
+	topics, err := r.recsRepo.GetUserFavouriteTopics(userID)
+	if err != nil {
+		return err
+	}
 
+	if len(topics) > 10 {
+		topics = topics[len(topics)-5:]
+	}
+
+	r.incrementProcentOf(FULL_USERS, &selfentity.Element{
+		Parents: topics,
+	})
 }
 
 func (r *RecomendationServiceImpl) GetRecs() ([]entity.Event, error) {
