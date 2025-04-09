@@ -15,6 +15,7 @@ import (
 type TopicRepository interface {
 	CreateTopic(*entity.Topic, []uint)
 	GetAlikeTopics(uint) []entity.Topic
+	GetTopicByID(uint) (*entity.GraphTopic, error)
 }
 
 type TopicStorage struct {
