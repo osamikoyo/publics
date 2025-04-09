@@ -71,7 +71,7 @@ func allikeSlises(arr1, arr2 []selfentity.Topic) bool {
 
 func (r *RecomendationServiceImpl) getProcentOf(topic *selfentity.Element) float32 {
 	for _, el := range r.arrayOfUID {
-		if r.topicSelfStorage[el].Self == topic.Self && r.topicSelfStorage[el].Parents == topic.Parents {
+		if r.topicSelfStorage[el].Self == topic.Self && allikeSlises(r.topicSelfStorage[el].Parents, topic.Parents) {
 			return r.topicConnectingsStorage[el]
 		}
 	}
@@ -92,6 +92,7 @@ func (r *RecomendationServiceImpl) AddFavTopic(userID, topicID uint) error {
 	r.incrementProcentOf(FULL_USERS, &selfentity.Element{
 		Parents: topics,
 	})
+
 }
 
 func (r *RecomendationServiceImpl) GetRecs() ([]entity.Event, error) {
