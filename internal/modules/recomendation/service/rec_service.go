@@ -103,6 +103,26 @@ func (r *RecomendationServiceImpl) AddFavTopic(userID, topicID uint) error {
 	return r.recsRepo.AddFavoutiteTopic(userID, topic.ToBase())
 }
 
-func (r *RecomendationServiceImpl) GetRecs() ([]entity.Event, error) {
+func (r *RecomendationServiceImpl) GetRecs(id uint) ([]entity.Event, error) {
+	topics, err := r.recsRepo.GetUserFavouriteTopics(id)
+	if err != nil {
+		return nil, err
+	}
 
+	var rec []entity.Event
+
+	for i, t := range topics {
+		if i > 4 {
+			break
+		}
+
+		events, err := r.eventRepo.GetWithTopic(t.TextExplain)
+		if err != nil {
+			return rec, err
+		}
+
+		rec = append(rec, events...)
+	}
+
+	return rec, nil
 }
