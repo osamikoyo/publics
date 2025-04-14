@@ -41,6 +41,10 @@ func (r *RecomendationServiceImpl) Inject(topicRepo topicrepo.TopicRepository, r
 	return r
 }
 
+func (r *RecomendationServiceImpl) DeleteFavTopic(userID, topicID uint) error {
+	return r.DeleteFavTopic(userID, topicID)
+}
+
 func (r *RecomendationServiceImpl) incrementProcentOf(full int, element *selfentity.Element) {
 	r.arrayOfUID = append(r.arrayOfUID, element.ID)
 	r.topicSelfStorage[element.ID] = element
